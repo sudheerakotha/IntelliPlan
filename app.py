@@ -1,50 +1,22 @@
+from modules.onboarding import onboarding_interface
+from modules.topic_analyzer import extract_topics_from_syllabus
+from modules.plan_generator import generate_study_plan
+from modules.revision_engine import schedule_revisions
+from modules.dashboard import show_dashboard
+
 import streamlit as st
-from streamlit_option_menu import option_menu
 
-st.set_page_config(layout="wide", page_title="Intelliplan Dashboard")
+def main():
+    st.title("IntelliPlan Study Planner")
 
-# Sidebar
-with st.sidebar:
-    selected = option_menu(
-        menu_title="Intelliplan",
-        options=["Dashboard", "Planner", "Analytics", "Settings"],
-        icons=["speedometer", "calendar", "bar-chart", "gear"],
-        menu_icon="grid-3x3-gap-fill",
-        default_index=0,
-    )
+    exam_date, study_hours, preference, syllabus_text = onboarding_interface()
 
-# Top bar
-st.markdown("## 📊 Welcome to Intelliplan")
-st.markdown("Here's your smart planner and productivity dashboard.")
+    if syllabus_text:
+        topics = extract_topics_from_syllabus(syllabus_text)
+        plan_df = generate_study_plan(study_hours=study_hours, start_date=st.date.today(), end_date=exam_date, topics=topics)
+        full_plan_df = schedule_revisions(plan_df)
 
-# Layout Columns
-col1, col2, col3 = st.columns(3)
+        show_dashboard(full_plan_df)
 
-with col1:
-    st.metric(label="Tasks Completed", value="15", delta="+5 today")
-with col2:
-    st.metric(label="Focus Hours", value="4h", delta="+1.5h")
-with col3:
-    st.metric(label="Planner Streak", value="🔥 7 days")
-
-# Tabs or Sections
-tab1, tab2, tab3 = st.tabs(["📅 Daily View", "📈 Weekly Summary", "🧠 Focus Mode"])
-
-with tab1:
-    st.subheader("Today's Tasks")
-    st.checkbox("✅ Meeting with team")
-    st.checkbox("✅ Design mockup review")
-    st.checkbox("🔲 30-min deep work")
-
-with tab2:
-    st.subheader("Weekly Analytics")
-    st.line_chart({"Focus Hours": [2, 3.5, 4, 2.5, 5]})
-
-with tab3:
-    st.subheader("Focus Tools")
-    st.button("Start Pomodoro")
-    st.button("Open Calm Sound")
-
-# Footer
-st.markdown("---")
-st.caption("Made with ❤️ by Sudheera")
+if __name__ == "__main__":
+    main()
